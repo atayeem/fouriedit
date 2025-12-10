@@ -1,11 +1,18 @@
 #include "buffer.h"
-#include <errno.h>
+#include <stdbool.h>
+#include <sndfile.h>
 #include <fftw3.h>
 #include "fft.c"
 
+#define FATAL "[FATAL] "
+#define ERROR "[ERROR] "
+#define WARN "[WARN] "
+#define INFO "[INFO] "
+#define LOG printf
+
 typedef struct {
     Buffer_sample b;
-    int channels;
+    SF_INFO i;
 } Audiodata;
 
 // Ordering: This type is column-major. Every frame is interlaced.
@@ -25,9 +32,30 @@ typedef struct {
     int channels;
 } Imagedata;
 
+// The file I/O section!
+
+// Open an audio file and read the channels.
+bool read_audio(const char* fname, Audiodata* ad) {
+    SF_INFO sfinfo;
+    SNDFILE* s = sf_open(fname, SFM_READ, &sfinfo);
+    if (!s) {
+        LOG("read_audio: failed to open file %s\n", fname);
+        return false;
+    }
+
+    ad->i = sfinfo;
+    buf_resize_soft_sample(&ad->b, sfinfo.frames * sfinfo.channels);
+    sf_count_t written = sf_readf_double(s, ad->b.data, sfinfo.frames);
+
+    if (written < sfinfo.frames)
+        LOG("read_audio: ")
+    return true;
+}
+
+
 // The idea is that it should be always modified in-place, since this allows buffer reuse by default.
 // They do not return error codes because they do operations that can't fail; they don't do syscalls.
-// They do modify errno though.
+// In the future maybe they should modify errno?
 
 // Turns *mono* audio into a spectrum. Requires a prepared FFT_Context.
 void audio_to_spectro(FFT_Context ctx, Audiodata* in, Spectrodata* out);

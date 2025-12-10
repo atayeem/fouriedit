@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <string.h>
 #include <fftw3.h>
 #include "typename.h"
 #include <assert.h>
@@ -35,7 +36,7 @@ static Buffer_##T buf_create_from_pointer_##T(T* ptr, size_t size) { \
 \
 static void buf_resize_hard_##T(Buffer_##T* b, size_t new_size) { \
     assert(new_size); \
-    b->data = realloc(b->data, new_size); \
+    b->data = (T*) realloc(b->data, new_size); \
     assert(b->data); \
     b->size = new_size; \
     b->capacity = new_size; \
@@ -51,7 +52,7 @@ static void buf_resize_soft_##T(Buffer_##T* b, size_t new_size) { \
 } \
 \
 static void buf_copy_##T(Buffer_##T* dst, Buffer_##T* src) { \
-    resize_buffer_##T##_soft(dst, src->size); \
+    buf_resize_soft_##T(dst, src->size); \
     memcpy(dst->data, src->data, src->size); \
 } \
 
