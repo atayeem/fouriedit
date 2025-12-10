@@ -51,6 +51,10 @@ void destroy_fft_context(FFT_Context* fc) {
     fftw_free(fc->out);
 }
 
+void execute_fft(FFT_Context* fc) {
+    
+}
+
 IFFT_Context create_ifft_context(size_t window) {
     assert(window > 0);
     assert(window < (1 << 20));
