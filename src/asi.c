@@ -48,7 +48,7 @@ bool read_audio(const char* fname, Audiodata* ad) {
     sf_count_t written = sf_readf_double(s, ad->b.data, sfinfo.frames);
 
     if (written < sfinfo.frames)
-        LOG("read_audio: ")
+        LOG(WARN "read_audio: Could not read entire file.");
     return true;
 }
 

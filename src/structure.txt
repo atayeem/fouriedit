@@ -1,0 +1,6 @@
+"fouriedit -f audio_to_image_domain_coloring -i in.mp3 -o out.png"
+[CLI Layer: process this query]
+    read_audio("in.mp3")
+    audio_to_spectro()
+        [asi Layer: compute this]
+        loop: 
