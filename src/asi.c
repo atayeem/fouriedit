@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <sndfile.h>
 #include <fftw3.h>
-#include "fft.c"
 
 #define FATAL "[FATAL] "
 #define ERROR "[ERROR] "
