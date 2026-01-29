@@ -1,4 +1,3 @@
-#include "buffer.h"
 #include <stdbool.h>
 #include <sndfile.h>
 #include <fftw3.h>
