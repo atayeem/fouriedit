@@ -34,9 +34,7 @@ typedef struct {
 } Audiodata;
 
 typedef struct {
-    // There is no window function because this is not to be considered when doing OLA.
-
-    // Justification: in a reversal operation, the user must explicitly want a change in sample rate.
+    // Justification: in a reversal operation, the default behavior (non-specified) should be to preserve sample rate.
     size_t sample_rate;
 
     // Justification: the original length of audio is rounded.
@@ -45,7 +43,7 @@ typedef struct {
     size_t window_count;
 
     // Guaranteed to have a size of sd->window_count * fk->window_size.
-    // Yes, it is necessary associated with the kernel.
+    // Yes, it is necessarily associated with the kernel.
     fftwf_complex* data;
 
     // There is no option for interlacing windows. Just seems like unnecessary copying.
