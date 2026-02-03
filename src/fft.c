@@ -219,16 +219,17 @@ Spectrodata* fftkernel_execute_forward(const FFTKernel* fk, const Audiodata* ad)
     sd->sample_rate = ad->sample_rate;
     sd->original_length = ad->frames;
 
-    sd->window_count = (ad->frames + fk->window_size - 1) / fk->window_size;
+    sd->window_count = (size_t) floorl((double)(ad->frames - fk->window_size) / fk->hop_size) + 1;
     sd->data = calloc((fk->window_size / 2 + 1) * sd->window_count, sizeof(fftwf_complex));
     assert(sd->data);
 
     fftwf_complex *sptr = sd->data;
     const float* const aptr_end = ad->data + ad->frames;
+    const fftwf_complex* const sptr_end = sd->data + (fk->window_size / 2 + 1) * sd->window_count;
 
     for (const float* aptr = ad->data; aptr < aptr_end; aptr += fk->hop_size) {
         
-        if (aptr + fk->hop_size > aptr_end) {
+        if (aptr + fk->window_size > aptr_end) {
             memset(fk->time_buf, 0, fk->window_size);
             memcpy(fk->time_buf, aptr, aptr_end - aptr);
         } else {
@@ -237,7 +238,7 @@ Spectrodata* fftkernel_execute_forward(const FFTKernel* fk, const Audiodata* ad)
 
         // Hanning or whatever else
         for (size_t i = 0; i < fk->window_size; i++) {
-            fk->time_buf[i] *= fk->window_function[i];
+            fk->time_buf[i] *= fk->window_function[i] / fk->window_size;
         }
 
         fftwf_execute(fk->forward);
@@ -245,6 +246,7 @@ Spectrodata* fftkernel_execute_forward(const FFTKernel* fk, const Audiodata* ad)
         memcpy(sptr, fk->freq_buf, (fk->window_size / 2 + 1) * sizeof(fftwf_complex));
 
         sptr += (fk->window_size / 2 + 1);
+        if (sptr >= sptr_end) break;
     }
 
     return sd;
@@ -286,6 +288,8 @@ void spectrodata_destroy(Spectrodata *sd) {
     free(sd);
 }
 
+#define MAIN2
+#ifdef MAIN1
 int main() {
     printf("Hello world!");
     FFTKernel *fk = fftkernel_create(WF_HANN, 4096, 2048);
@@ -311,3 +315,33 @@ int main() {
 
     return 0;
 }
+#endif
+
+#ifdef MAIN2
+int main() {
+    printf("Hello world!");
+    FFTKernel *fk = fftkernel_create(WF_HANN, 4096, 2048);
+
+    Spectrodata sd = {
+        .data = calloc(1000 * (fk->window_size / 2 + 1), sizeof(fftwf_complex)),
+        .original_length = 100 * (fk->window_size),
+        .sample_rate = 44100,
+        .window_count = 1000
+    };
+
+    /*for (int i = 0; i < 1000; i++) {
+        sd.data[100 + i * (fk->window_size / 2 + 1)][0] = 0.001f;  // real part
+        sd.data[100 + i * (fk->window_size / 2 + 1)][1] = 0.0f;  // imag part
+    }*/
+
+    Audiodata *ad2 = fftkernel_execute_reverse(fk, &sd);
+    assert(ad2);
+
+    printf("Got here.\n");
+    audiodata_write_file("bin\\test_out.wav", ad2);
+
+    fftkernel_destroy(fk);
+
+    return 0;
+}
+#endif
