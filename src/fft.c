@@ -219,7 +219,8 @@ Spectrodata* fftkernel_execute_forward(const FFTKernel* fk, const Audiodata* ad)
     sd->sample_rate = ad->sample_rate;
     sd->original_length = ad->frames;
 
-    sd->window_count = (size_t) floorl((double)(ad->frames - fk->window_size) / fk->hop_size) + 1;
+    sd->window_count = (ad->frames + fk->window_size - 1) / fk->hop_size;
+    printf("Created %d windows for %d samples, %d window_size, %d hop_size.\n", sd->window_count, ad->frames, fk->window_size, fk->hop_size);
     sd->data = calloc((fk->window_size / 2 + 1) * sd->window_count, sizeof(fftwf_complex));
     assert(sd->data);
 
